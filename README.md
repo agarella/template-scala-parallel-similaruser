@@ -2,27 +2,13 @@
 
 ## Documentation
 
-Please refer to http://docs.prediction.io/templates/similarproduct/quickstart/
+Please refer to http://docs.prediction.io/templates/similaruser/quickstart/
 
 ## Versions
-
-### v0.1.3
-
-- cache mllibRatings RDD in algorithm train() because it is used at multiple places (non-empty data check and ALS)
-
-### v0.1.2
-
-- update for PredictionIO 0.9.0
-
-### v0.1.1
-
-- Persist RDD to memory (.cache()) in DataSource for better performance
-- Use local model for faster serving.
 
 ### v0.1.0
 
 - initial version
-
 
 ## Development Notes
 
@@ -38,7 +24,7 @@ normal:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "items": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
+-d '{ "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
@@ -46,7 +32,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "items": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "categories" : ["c4", "c3"]
 }' \
@@ -57,7 +43,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "items": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "whiteList": ["i21", "i26", "i40"]
 }' \
@@ -68,7 +54,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "items": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "blackList": ["i21", "i26", "i40"]
 }' \
@@ -76,17 +62,17 @@ http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
-unknown item:
+unknown userItem:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "items": ["unk1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
+-d '{ "userItems": ["unk1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
 
-all unknown items:
+all unknown userItems:
 
 ```
 curl -H "Content-Type: application/json" \
