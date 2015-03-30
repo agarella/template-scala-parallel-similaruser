@@ -76,7 +76,7 @@ all unknown userItems:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "items": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
+-d '{ "userItems": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
