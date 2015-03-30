@@ -16,25 +16,25 @@ case class ALSAlgorithmParams(
   seed: Option[Long]) extends Params
 
 class ALSModel(
-  val userItemFeatures: Map[Int, Array[Double]],
-  val userItemStringIntMap: BiMap[String, Int],
-  val userItems: Map[Int, UserItem]
+  val similarUserFeatures: Map[Int, Array[Double]],
+  val similarUserStringIntMap: BiMap[String, Int],
+  val similarUsers: Map[Int, User]
 ) extends Serializable {
 
-  @transient lazy val userItemIntStringMap = userItemStringIntMap.inverse
+  @transient lazy val similarUserIntStringMap = similarUserStringIntMap.inverse
 
   override def toString = {
-    s" userItemFeatures: [${userItemFeatures.size}]" +
-    s"(${userItemFeatures.take(2).toList}...)" +
-    s" userItemStringIntMap: [${userItemStringIntMap.size}]" +
-    s"(${userItemStringIntMap.take(2).toString}...)]" +
-    s" userItems: [${userItems.size}]" +
-    s"(${userItems.take(2).toString}...)]"
+    s" similarUserFeatures: [${similarUserFeatures.size}]" +
+    s"(${similarUserFeatures.take(2).toList}...)" +
+    s" similarUserStringIntMap: [${similarUserStringIntMap.size}]" +
+    s"(${similarUserStringIntMap.take(2).toString}...)]" +
+    s" similarUsers: [${similarUsers.size}]" +
+    s"(${similarUsers.take(2).toString}...)]"
   }
 }
 
 /**
-  * Use ALS to build userItem x feature matrix
+  * Use ALS to build similarUser x feature matrix
   */
 class ALSAlgorithm(val ap: ALSAlgorithmParams)
   extends P2LAlgorithm[PreparedData, ALSModel, Query, PredictedResult] {
@@ -50,40 +50,40 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       s"users in PreparedData cannot be empty." +
       " Please check if DataSource generates TrainingData" +
       " and Preprator generates PreparedData correctly.")
-    require(!data.userItems.take(1).isEmpty,
-      s"userItems in PreparedData cannot be empty." +
+    require(!data.similarUsers.take(1).isEmpty,
+      s"similarUsers in PreparedData cannot be empty." +
       " Please check if DataSource generates TrainingData" +
       " and Preprator generates PreparedData correctly.")
-    // create User and userItem's String ID to integer index BiMap
+    // create User and similarUser's String ID to integer index BiMap
     val userStringIntMap = BiMap.stringInt(data.users.keys)
-    val userItemStringIntMap = BiMap.stringInt(data.userItems.keys)
+    val similarUserStringIntMap = BiMap.stringInt(data.similarUsers.keys)
 
-    // collect UserItem as Map and convert ID to Int index
-    val userItems: Map[Int, UserItem] = data.userItems.map { case (id, userItem) =>
-      (userItemStringIntMap(id), userItem)
+    // collect SimilarUser as Map and convert ID to Int index
+    val similarUsers: Map[Int, User] = data.similarUsers.map { case (id, similarUser) =>
+      (similarUserStringIntMap(id), similarUser)
     }.collectAsMap.toMap
 
     val mllibRatings = data.viewEvents
       .map { r =>
-        // Convert user and userItem String IDs to Int index for MLlib
+        // Convert user and similarUser String IDs to Int index for MLlib
         val uindex = userStringIntMap.getOrElse(r.user, -1)
-        val iindex = userItemStringIntMap.getOrElse(r.userItem, -1)
+        val iindex = similarUserStringIntMap.getOrElse(r.similarUser, -1)
 
         if (uindex == -1)
           logger.info(s"Couldn't convert nonexistent user ID ${r.user}"
             + " to Int index.")
 
         if (iindex == -1)
-          logger.info(s"Couldn't convert nonexistent userItem ID ${r.userItem}"
+          logger.info(s"Couldn't convert nonexistent similarUser ID ${r.similarUser}"
             + " to Int index.")
 
         ((uindex, iindex), 1)
       }.filter { case ((u, i), v) =>
-        // keep events with valid user and userItem index
+        // keep events with valid user and similarUser index
         (u != -1) && (i != -1)
-      }.reduceByKey(_ + _) // aggregate all view events of same user-userItem pair
+      }.reduceByKey(_ + _) // aggregate all view events of same user-similarUser pair
       .map { case ((u, i), v) =>
-        // MLlibRating requires integer index for user and userItem
+        // MLlibRating requires integer index for user and similarUser
         MLlibRating(u, i, v)
       }
       .cache()
@@ -91,7 +91,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     // MLLib ALS cannot handle empty training data.
     require(!mllibRatings.take(1).isEmpty,
       s"mllibRatings cannot be empty." +
-      " Please check if your events contain valid user and userItem ID.")
+      " Please check if your events contain valid user and similarUser ID.")
 
     // seed for MLlib ALS
     val seed = ap.seed.getOrElse(System.nanoTime)
@@ -106,36 +106,36 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       seed = seed)
 
     new ALSModel(
-      userItemFeatures = m.productFeatures.collectAsMap.toMap,
-      userItemStringIntMap = userItemStringIntMap,
-      userItems = userItems
+      similarUserFeatures = m.productFeatures.collectAsMap.toMap,
+      similarUserStringIntMap = similarUserStringIntMap,
+      similarUsers = similarUsers
     )
   }
 
   def predict(model: ALSModel, query: Query): PredictedResult = {
 
-    val productFeatures = model.userItemFeatures
+    val productFeatures = model.similarUserFeatures
 
-    // convert userItems to Int index
-    val queryList: Set[Int] = query.userItems.map(model.userItemStringIntMap.get(_))
+    // convert similarUsers to Int index
+    val queryList: Set[Int] = query.similarUsers.map(model.similarUserStringIntMap.get(_))
       .flatten.toSet
 
     val queryFeatures: Vector[Array[Double]] = queryList.toVector
-      // userItemFeatures may not contain the requested userItem
-      .map { userItem => productFeatures.get(userItem) }
+      // similarUserFeatures may not contain the requested similarUser
+      .map { similarUser => productFeatures.get(similarUser) }
       .flatten
 
     val whiteList: Option[Set[Int]] = query.whiteList.map( set =>
-      set.map(model.userItemStringIntMap.get(_)).flatten
+      set.map(model.similarUserStringIntMap.get(_)).flatten
     )
     val blackList: Option[Set[Int]] = query.blackList.map ( set =>
-      set.map(model.userItemStringIntMap.get(_)).flatten
+      set.map(model.similarUserStringIntMap.get(_)).flatten
     )
 
     val ord = Ordering.by[(Int, Double), Double](_._2).reverse
 
     val indexScores: Array[(Int, Double)] = if (queryFeatures.isEmpty) {
-      logger.info(s"No userItemFeatures vector for query userItems ${query.userItems}.")
+      logger.info(s"No similarUserFeatures vector for query similarUsers ${query.similarUsers}.")
       Array[(Int, Double)]()
     } else {
       productFeatures.par // convert to parallel collection
@@ -144,15 +144,15 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
             cosine(qf, f)
           }.reduce(_ + _)
         }
-        .filter(_._2 > 0) // keep userItems with score > 0
+        .filter(_._2 > 0) // keep similarUsers with score > 0
         .seq // convert back to sequential collection
         .toArray
     }
 
     val filteredScore = indexScores.view.filter { case (i, v) =>
-      isCandidateUserItem(
+      isCandidateSimilarUser(
         i = i,
-        userItems = model.userItems,
+        similarUsers = model.similarUsers,
         queryList = queryList,
         whiteList = whiteList,
         blackList = blackList
@@ -161,14 +161,14 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
 
     val topScores = getTopN(filteredScore, query.num)(ord).toArray
 
-    val userItemScores = topScores.map { case (i, s) =>
-      new UserItemScore(
-        userItem = model.userItemIntStringMap(i),
+    val similarUserScores = topScores.map { case (i, s) =>
+      new similarUserScore(
+        similarUser = model.similarUserIntStringMap(i),
         score = s
       )
     }
 
-    new PredictedResult(userItemScores)
+    new PredictedResult(similarUserScores)
   }
 
   private
@@ -204,21 +204,21 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       d += v1(i) * v2(i)
       i += 1
     }
-    val n1n2 = (math.sqrt(n1) * math.sqrt(n2))
-    if (n1n2 == 0) 0 else (d / n1n2)
+    val n1n2 = math.sqrt(n1) * math.sqrt(n2)
+    if (n1n2 == 0) 0 else d / n1n2
   }
 
   private
-  def isCandidateUserItem(
+  def isCandidateSimilarUser(
     i: Int,
-    userItems: Map[Int, UserItem],
+    similarUsers: Map[Int, User],
     queryList: Set[Int],
     whiteList: Option[Set[Int]],
     blackList: Option[Set[Int]]
   ): Boolean = {
     whiteList.map(_.contains(i)).getOrElse(true) &&
     blackList.map(!_.contains(i)).getOrElse(true) &&
-    // discard userItems in query as well
+    // discard similarUsers in query as well
     (!queryList.contains(i))
   }
 

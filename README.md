@@ -24,7 +24,7 @@ normal:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
+-d '{ "similarUsers": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
@@ -32,7 +32,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "similarUsers": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "categories" : ["c4", "c3"]
 }' \
@@ -43,7 +43,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "similarUsers": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "whiteList": ["i21", "i26", "i40"]
 }' \
@@ -54,7 +54,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "userItems": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
+  "similarUsers": ["i1", "i3", "i10", "i2", "i5", "i31", "i9"],
   "num": 10,
   "blackList": ["i21", "i26", "i40"]
 }' \
@@ -62,21 +62,21 @@ http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
-unknown userItem:
+unknown similarUser:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "userItems": ["unk1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
+-d '{ "similarUsers": ["unk1", "i3", "i10", "i2", "i5", "i31", "i9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
 
-all unknown userItems:
+all unknown similarUsers:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "userItems": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
+-d '{ "similarUsers": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```

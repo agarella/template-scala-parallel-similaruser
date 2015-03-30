@@ -10,13 +10,13 @@ class Preparator
   def prepare(sc: SparkContext, trainingData: TrainingData): PreparedData = {
     new PreparedData(
       users = trainingData.users,
-      userItems = trainingData.userItems,
+      similarUsers = trainingData.similarUsers,
       viewEvents = trainingData.viewEvents)
   }
 }
 
 class PreparedData(
   val users: RDD[(String, User)],
-  val userItems: RDD[(String, UserItem)],
+  val similarUsers: RDD[(String, User)],
   val viewEvents: RDD[ViewEvent]
 ) extends Serializable

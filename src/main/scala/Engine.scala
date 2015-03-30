@@ -4,18 +4,18 @@ import io.prediction.controller.IEngineFactory
 import io.prediction.controller.Engine
 
 case class Query(
-  userItems: List[String],
+  similarUsers: List[String],
   num: Int,
   whiteList: Option[Set[String]],
   blackList: Option[Set[String]]
 ) extends Serializable
 
 case class PredictedResult(
-  userItemScores: Array[UserItemScore]
+  similarUserScores: Array[similarUserScore]
 ) extends Serializable
 
-case class UserItemScore(
-  userItem: String,
+case class similarUserScore(
+  similarUser: String,
   score: Double
 ) extends Serializable
 

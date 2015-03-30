@@ -25,29 +25,27 @@ def import_events(client):
     )
     count += 1
 
-  # generate 50 userItems, with userItem ids i1,i2,....,i50
-  user_item_ids = ["i%s" % i for i in range(1, 51)]
-  for user_item_id in user_item_ids:
-    print "Set userItem", user_item_id
+  # generate 50 similarUsers, with similarUser ids i1,i2,....,i50
+  similar_user_ids = ["i%s" % i for i in range(1, 51)]
+  for similar_user_id in similar_user_ids:
+    print "Set similarUser", similar_user_id
     client.create_event(
       event="$set",
-      entity_type="userItem",
-      entity_id=user_item_id,
-      properties={
-      }
+      entity_type="similarUser",
+      entity_id=similar_user_id
     )
     count += 1
 
-  # each user randomly viewed 10 userItems
+  # each user randomly viewed 10 similarUsers
   for user_id in user_ids:
-    for viewed_item in random.sample(user_item_ids, 10):
-      print "User", user_id ,"views userItem", viewed_item
+    for viewed_user in random.sample(similar_user_ids, 10):
+      print "User", user_id ,"views similarUser", viewed_user
       client.create_event(
         event="view",
         entity_type="user",
         entity_id=user_id,
-        target_entity_type="userItem",
-        target_entity_id=viewed_item
+        target_entity_type="similarUser",
+        target_entity_id=viewed_user
       )
       count += 1
 
