@@ -26,7 +26,7 @@ def import_events(client):
     count += 1
 
   # generate 50 similarUsers, with similarUser ids i1,i2,....,i50
-  similar_user_ids = ["i%s" % i for i in range(1, 51)]
+  similar_user_ids = ["su%s" % i for i in range(1, 51)]
   for similar_user_id in similar_user_ids:
     print "Set similarUser", similar_user_id
     client.create_event(
