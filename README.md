@@ -24,7 +24,7 @@ normal:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "similarUsers": [su1", su3", su10", su2", su5", su31", su9"], "num": 10}' \
+-d '{ "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
@@ -32,7 +32,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": [su1", su3", su10", su2", su5", su31", su9"],
+  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
   "num": 10
 }' \
 http://localhost:8000/queries.json \
@@ -42,9 +42,9 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": [su1", su3", su10", su2", su5", su31", su9"],
+  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
   "num": 10,
-  "whiteList": [su21", su26", su40"]
+  "whiteList": ["su21", "su26", "su40"]
 }' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
@@ -53,9 +53,9 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": [su1", su3", su10", su2", su5", su31", su9"],
+  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
   "num": 10,
-  "blackList": [su21", su26", su40"]
+  "blackList": ["su21", "su26", "su40"]
 }' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
@@ -65,7 +65,7 @@ unknown similarUser:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "similarUsers": ["unk1", su3", su10", su2", su5", su31", su9"], "num": 10}' \
+-d '{ "similarUsers": ["unk1", "su3", "su10", "su2", "su5", "su31", "su9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
