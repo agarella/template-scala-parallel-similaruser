@@ -4,7 +4,7 @@ import io.prediction.controller.IEngineFactory
 import io.prediction.controller.Engine
 
 case class Query(
-  similarUsers: List[String],
+  users: List[String],
   num: Int,
   whiteList: Option[Set[String]],
   blackList: Option[Set[String]]
@@ -15,7 +15,7 @@ case class PredictedResult(
 ) extends Serializable
 
 case class similarUserScore(
-  similarUser: String,
+  user: String,
   score: Double
 ) extends Serializable
 

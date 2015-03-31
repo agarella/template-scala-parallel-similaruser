@@ -35,37 +35,20 @@ class DataSource(val dsp: DataSourceParams)
       (entityId, user)
     }.cache()
 
-    // create a RDD of (entityID, SimilarUser)
-    val similarUsersRDD: RDD[(String, User)] = eventsDb.aggregateProperties(
-      appId = dsp.appId,
-      entityType = "similarUser"
-    )(sc).map { case (entityId, properties) =>
-      val similarUser = try {
-        User()
-      } catch {
-        case e: Exception => {
-          logger.error(s"Failed to get properties $properties of" +
-            s" similarUser $entityId. Exception: $e.")
-          throw e
-        }
-      }
-      (entityId, similarUser)
-    }.cache()
-
-    // get all "user" "view" "similarUser" events
+    // get all "user" "view" "viewedUser" events
     val viewEventsRDD: RDD[ViewEvent] = eventsDb.find(
       appId = dsp.appId,
       entityType = Some("user"),
       eventNames = Some(List("view")),
       // targetEntityType is optional field of an event.
-      targetEntityType = Some(Some("similarUser")))(sc)
+      targetEntityType = Some(Some("viewedUser")))(sc)
       // eventsDb.find() returns RDD[Event]
       .map { event =>
         val viewEvent = try {
           event.event match {
             case "view" => ViewEvent(
               user = event.entityId,
-              similarUser = event.targetEntityId.get,
+              viewedUser = event.targetEntityId.get,
               t = event.eventTime.getMillis)
             case _ => throw new Exception(s"Unexpected event $event is read.")
           }
@@ -81,7 +64,6 @@ class DataSource(val dsp: DataSourceParams)
 
     new TrainingData(
       users = usersRDD,
-      similarUsers = similarUsersRDD,
       viewEvents = viewEventsRDD
     )
   }
@@ -89,17 +71,14 @@ class DataSource(val dsp: DataSourceParams)
 
 case class User()
 
-
-case class ViewEvent(user: String, similarUser: String, t: Long)
+case class ViewEvent(user: String, viewedUser: String, t: Long)
 
 class TrainingData(
   val users: RDD[(String, User)],
-  val similarUsers: RDD[(String, User)],
   val viewEvents: RDD[ViewEvent]
 ) extends Serializable {
   override def toString = {
     s"users: [${users.count()} (${users.take(2).toList}...)]" +
-    s"similarUsers: [${similarUsers.count()} (${similarUsers.take(2).toList}...)]" +
     s"viewEvents: [${viewEvents.count()}] (${viewEvents.take(2).toList}...)"
   }
 }
