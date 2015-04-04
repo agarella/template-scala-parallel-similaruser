@@ -15,7 +15,7 @@ This approach works perfectly for customers who are **first-time visitors** or h
 Recommendations are made dynamically in *real-time* based on the most recent user preference you provide in the *Query*.
 You can, therefore, recommend users to visitors without knowing a long history about them.
 
-You can also use this template to build the popular feature of Facebook: **"Friend suggestions..."** quickly.
+You can also use this template to build the popular feature of Facebook: **"People you may know"** quickly.
 Help your customers find more users by providing them suggestions of users similar to them.
 
 ## Usage
@@ -25,15 +25,14 @@ Help your customers find more users by providing them suggestions of users simil
 By default, this template takes the following data from Event Server as Training Data:
 
 - User *$set* events
-- similarUser *$set* events
-- Users' *view* similarUser events
+- Users' *view* viewedUser events
 
 ### Input Query
 
 - List of UserIDs, which are the targeted users
 - N (number of users to be recommended)
-- List of white-listed ItemIds (optional)
-- List of black-listed ItemIds (optional)
+- List of white-listed UserIds (optional)
+- List of black-listed UserIds (optional)
 
 The template also supports black-list and white-list. If a white-list is provided, the engine will include only those users in its recommendation.
 Likewise, if a black-list is provided, the engine will exclude those users in its recommendation.
@@ -57,12 +56,12 @@ Likewise, if a black-list is provided, the engine will exclude those users in it
 ## 4a. Collecting Data
 
 Next, let's collect some training data for the app of this Engine. By default,
-the Similar User Engine Template supports 2 types of entities: **user** and
-**similarUser**, and event **view**. An item has the **categories** property, which is a list of category names (String). A user can view an item.
+the Similar User Engine Template supports entity: **user** 
+and event **view**. A user can view another user.
 
 <%= partial 'shared/quickstart/install_sdk' %>
 
-The following is sample code of using different SDKs to import events of setting user and item's properties, and user-view-item events:
+The following is sample code of using different SDKs to import events of setting users, and user-view-user events:
 
 <div class="tabs">
   <div data-tab="Python SDK" data-lang="python">
@@ -84,25 +83,14 @@ client.create_event(
   entity_id=<USER_ID>
 )
 
-# Create a new item or set existing item's categories
-
-client.create_event(
-  event="$set",
-  entity_type="item",
-  entity_id=item_id,
-  properties={
-    "categories" : ["<CATEGORY_1>", "<CATEGORY_2>"]
-  }
-)
-
-# A user views an item
+# A user views another user
 
 client.create_event(
   event="view",
   entity_type="user",
   entity_id=<USER ID>,
-  target_entity_type="item",
-  target_entity_id=<ITEM ID>
+  target_entity_type="viewedUser",
+  target_entity_id=<VIEWED USER ID>
 )
 ```
   </div>
@@ -122,21 +110,13 @@ $client->createEvent(array(
   'entityId' => <USER ID>
 ));
 
-// Create a new item or set existing item's categories
-$client->createEvent(array(
-  'event' => '$set',
-  'entityType' => 'item',
-  'entityId' => <ITEM ID>
-  'properties' => array('categories' => array('<CATEGORY_1>', '<CATEGORY_2>'))
-));
-
-// A user views an item
+// A user views another user
 $client->createEvent(array(
    'event' => 'view',
    'entityType' => 'user',
    'entityId' => <USER ID>,
-   'targetEntityType' => 'item',
-   'targetEntityId' => <ITEM ID>
+   'targetEntityType' => 'viewedUser',
+   'targetEntityId' => <VIEWED USER ID>
 ));
 
 ?>
@@ -155,22 +135,13 @@ client.create_event(
   <USER ID>
 )
 
-# Create a new item or set existing item's categories
-client.create_event(
-  '$set',
-  'item',
-  <ITEM ID>, {
-    'properties' => { 'categories' => ['<CATEGORY_1>', '<CATEGORY_2>'] }
-  }
-)
-
-# A user views an item.
+# A user views another user.
 client.create_event(
   'view',
   'user',
   <USER ID>, {
-    'targetEntityType' => 'item',
-    'targetEntityId' => <ITEM ID>
+    'targetEntityType' => 'viwedUser',
+    'targetEntityId' => <VIEWED USER ID>
   }
 )
 
@@ -193,21 +164,13 @@ Event userEvent = new Event()
   .entityId(<USER_ID>);
 client.createEvent(userEvent);
 
-// Create a new item or set existing item's categories
-Event itemEvent = new Event()
-  .event("$set")
-  .entityType("item")
-  .entityId(<ITEM_ID>)
-  .property("categories", ImmutableList.of("<CATEGORY_1>", "<CATEGORY_2>"));
-client.createEvent(itemEvent)
-
-// A user views an item
+// A user views another user
 Event viewEvent = new Event()
     .event("view")
     .entityType("user")
     .entityId(<USER_ID>)
-    .targetEntityType("item")
-    .targetEntityId(<ITEM_ID>);
+    .targetEntityType("viewedUser")
+    .targetEntityId(<VIEWED_USER_ID>);
 client.createEvent(viewEvent);
 
 ```
@@ -225,21 +188,7 @@ curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
   "eventTime" : <TIME OF THIS EVENT>
 }'
 
-# Create a new item or set existing item's categories
-
-curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
--H "Content-Type: application/json" \
--d '{
-  "event" : "$set",
-  "entityType" : "item"
-  "entityId" : <ITEM ID>,
-  "properties" : {
-    "categories" : ["<CATEGORY_1>", "<CATEGORY_2>"]
-  }
-  "eventTime" : <TIME OF THIS EVENT>
-}'
-
-# A user views an item
+# A user views another user
 
 curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
 -H "Content-Type: application/json" \
@@ -247,8 +196,8 @@ curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
   "event" : "view",
   "entityType" : "user"
   "entityId" : <USER ID>,
-  "targetEntityType" : "item",
-  "targetEntityId" : <ITEM ID>,
+  "targetEntityType" : "viewedUser",
+  "targetEntityId" : <VIEWED USER ID>,
   "eventTime" : <TIME OF THIS EVENT>
 }'
 
@@ -256,20 +205,22 @@ curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
   </div>
 </div>
 
-The properties of the `user` and `item` can be set, unset, or delete by special events **$set**, **$unset** and **$delete**. Please refer to [Event API](/datacollection/eventapi/#note-about-properties) for more details of using these events.
+The properties of the `user` can be set, unset, or delete by special events **$set**, **$unset** and **$delete**. Please refer to [Event API](/datacollection/eventapi/#note-about-properties) for more details of using these events.
 
 ## 4b. Import Sample Data
 
 <%= partial 'shared/quickstart/import_sample_data' %>
 
-A Python import script `import_eventserver.py` is provided to import sample data. It imports 10 users (with user ID "u1" to "u10") and 50 items (with item ID "i1" to "i50") with some random assigned categories ( with categories "c1" to "c6"). Each user then randomly view 10 items.
+A Python import script `import_eventserver.py` is provided to import sample data. It imports 50 users (with user ID "u1" to "u50").
+Each user then randomly views 10 other users.
 
 NOTE: You need to install Python SDK to run the import script. Please follow [Python SDK README](https://github.com/PredictionIO/PredictionIO-Python-SDK) to install.
 
-First, make sure you are under the `MySimilarProduct` directory. Execute the following to import the data (Replace the value of access_key parameter with your **Access Key**):
+First, make sure you are under the `MySimilarUser` directory. Execute the following to import the data (Replace the value of access_key 
+parameter with your **Access Key**):
 
 ```
-$ cd MySimilarProduct
+$ cd MySimilarUser
 $ python data/import_eventserver.py --access_key 3mZWDzci2D5YsqAnqNnXH9SB6Rg3dsTBs8iHkK6X2i54IQsIZI1eEeQQyMfs7b3F
 ```
 
@@ -277,13 +228,13 @@ You should see the following output:
 
 ```
 ...
-User u10 views item i20
-User u10 views item i17
-User u10 views item i22
-User u10 views item i31
-User u10 views item i18
-User u10 views item i29
-160 events are imported.
+User u50 views User u6
+User u50 views User u13
+User u50 views User u5
+User u50 views User u44
+User u50 views User u33
+User u50 views User u30
+550 events are imported.
 ```
 
 WARNING: If you see error **TypeError: __init__() got an unexpected keyword argument 'access_key'**,
@@ -291,20 +242,22 @@ please update the Python SDK to the latest version.
 
 ## 5. Deploy the Engine as a Service
 
-<%= partial 'shared/quickstart/deploy_enginejson', locals: { engine_name: 'MySimilarProduct' } %>
+<%= partial 'shared/quickstart/deploy_enginejson', locals: { engine_name: 'MySimilarUser' } %>
 
-<%= partial 'shared/quickstart/deploy', locals: { engine_name: 'MySimilarProduct' } %>
+<%= partial 'shared/quickstart/deploy', locals: { engine_name: 'MySimilarUser' } %>
 
 ## 6. Use the Engine
 
-Now, You can retrieve predicted results. To retrieve 4 items which are similar to item ID "i1". You send this JSON `{ "items": ["i1"], "num": 4 }` to the deployed engine and it will return a JSON of the recommended items. Simply send a query by making a HTTP request or through the `EngineClient` of an SDK:
+Now, You can retrieve predicted results. To retrieve 4 users which are similar to user ID "u1".
+You send this JSON `{ "users": ["u1"], "num": 4 }` to the deployed engine and it will return a JSON of the recommended users. Simply send
+ a query by making a HTTP request or through the `EngineClient` of an SDK:
 
 <div class="tabs">
   <div data-tab="Python SDK" data-lang="python">
 ```python
 import predictionio
 engine_client = predictionio.EngineClient(url="http://localhost:8000")
-print engine_client.send_query({"items": ["i1"], "num": 4})
+print engine_client.send_query({"users": ["u1"], "num": 4})
 ```
   </div>
   <div data-tab="PHP SDK" data-lang="php">
@@ -315,7 +268,7 @@ use predictionio\EngineClient;
 
 $client = new EngineClient('http://localhost:8000');
 
-$response = $client->sendQuery(array('items'=> array('i1'), 'num'=> 4));
+$response = $client->sendQuery(array('users'=> array('i1'), 'num'=> 4));
 print_r($response);
 
 ?>
@@ -328,7 +281,7 @@ print_r($response);
 client = PredictionIO::EngineClient.new('http://localhost:8000')
 
 # Query PredictionIO.
-response = client.send_query('items' => ['i1'], 'num' => 4)
+response = client.send_query('users' => ['i1'], 'num' => 4)
 
 puts response
 ```
@@ -348,7 +301,7 @@ EngineClient engineClient = new EngineClient("http://localhost:8000");
 // query
 
 JsonObject response = engineClient.sendQuery(ImmutableMap.<String, Object>of(
-        "items", ImmutableList.of("i1"),
+        "users", ImmutableList.of("u1"),
         "num",  4
     ));
 ```
@@ -356,87 +309,71 @@ JsonObject response = engineClient.sendQuery(ImmutableMap.<String, Object>of(
   <div data-tab="REST API" data-lang="json">
 ```
 $ curl -H "Content-Type: application/json" \
--d '{ "items": ["i1"], "num": 4 }' \
+-d '{ "users": ["u1"], "num": 4 }' \
 http://localhost:8000/queries.json
 
 ```
   </div>
 </div>
 
-The following is sample JSON response:
+The following is a sample JSON response:
 
 ```
 {
-  "itemScores":[
-    {"item":"i43","score":0.7071067811865475},
-    {"item":"i21","score":0.7071067811865475},
-    {"item":"i46","score":0.5773502691896258},
-    {"item":"i8","score":0.5773502691896258}
+  "userScores":[
+    {"user":"u43","score":0.7071067811865475},
+    {"user":"u21","score":0.7071067811865475},
+    {"user":"u46","score":0.5773502691896258},
+    {"user":"u8","score":0.5773502691896258}
   ]
 }
 ```
 
-*MySimilarProduct* is now running.
+*MySimilarUser* is now running.
 
 <%= partial 'shared/quickstart/production' %>
 
 
 ## Advanced Query
 
-### Recommend items which are similar to multiple items:
+### Recommend users which are similar to multiple users:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "items": ["i1", "i3"], "num": 10}' \
+-d '{ "users": ["u1", "u3"], "num": 10}' \
 http://localhost:8000/queries.json
 
-{"itemScores":[{"item":"i12","score":1.1700499715209998},{"item":"i21","score":1.1153550716504106},{"item":"i43","score":1.1153550716504106},{"item":"i14","score":1.0773502691896257},{"item":"i39","score":1.0773502691896257},{"item":"i26","score":1.0773502691896257},{"item":"i44","score":1.0773502691896257},{"item":"i38","score":0.9553418012614798},{"item":"i36","score":0.9106836025229592},{"item":"i46","score":0.9106836025229592}]}
+{"userScores":[{"user":"u12","score":1.1700499715209998},{"user":"u21","score":1.1153550716504106},{"user":"u43","score":1.1153550716504106},{"user":"u14","score":1.0773502691896257},{"user":"u39","score":1.0773502691896257},{"user":"u26","score":1.0773502691896257},{"user":"u44","score":1.0773502691896257},{"user":"u38","score":0.9553418012614798},{"user":"u36","score":0.9106836025229592},{"user":"u46","score":0.9106836025229592}]}
 ```
 
-In addition, the Query support the following optional parameters `categories`, `whiteList` and `blackList`.
+In addition, the Query support the following optional parameters `whiteList` and `blackList`.
 
-### Recommend items in selected categories:
-
-```
-curl -H "Content-Type: application/json" \
--d '{
-  "items": ["i1", "i3"],
-  "num": 10,
-  "categories" : ["c4", "c3"]
-}' \
-http://localhost:8000/queries.json
-
-{"itemScores":[{"item":"i21","score":1.1153550716504106},{"item":"i14","score":1.0773502691896257},{"item":"i26","score":1.0773502691896257},{"item":"i39","score":1.0773502691896257},{"item":"i44","score":1.0773502691896257},{"item":"i45","score":0.7886751345948129},{"item":"i47","score":0.7618016810571367},{"item":"i9","score":0.7618016810571367},{"item":"i28","score":0.7618016810571367},{"item":"i6","score":0.7618016810571367}]}
-```
-
-### Recommend items in the whiteList:
+### Recommend users in the whiteList:
 
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "items": ["i1", "i3"],
+  "users": ["u1", "u3"],
   "num": 10,
-  "categories" : ["c4", "c3"],
-  "whiteList": ["i21", "i26", "i40"]
+  "whiteList": ["u21", "u26", "u40"]
 }' \
 http://localhost:8000/queries.json
 
-{"itemScores":[{"item":"i21","score":1.1153550716504106},{"item":"i26","score":1.0773502691896257}]}
+{"userScores":[{"user":"u21","score":1.1153550716504106},{"user":"u26","score":1.0773502691896257}]}
 ```
 
-### Recommend items not in the blackList:
+### Recommend users not in the blackList:
 
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "items": ["i1", "i3"],
+  "users": ["u1", "u3"],
   "num": 10,
-  "categories" : ["c4", "c3"],
-  "blackList": ["i21", "i26", "i40"]
+  "blackList": ["u21", "u26", "u40"]
 }' \
 http://localhost:8000/queries.json
 
-{"itemScores":[{"item":"i39","score":1.0773502691896257},{"item":"i44","score":1.0773502691896257},{"item":"i14","score":1.0773502691896257},{"item":"i45","score":0.7886751345948129},{"item":"i47","score":0.7618016810571367},{"item":"i6","score":0.7618016810571367},{"item":"i28","score":0.7618016810571367},{"item":"i9","score":0.7618016810571367},{"item":"i29","score":0.6220084679281463},{"item":"i30","score":0.5386751345948129}]}
+{"userScores":[{"user":"u39","score":1.0773502691896257},{"user":"u44","score":1.0773502691896257},{"user":"u14","score":1.0773502691896257},{"user":"u45","score":0.7886751345948129},{"user":"u47","score":0.7618016810571367},{"user":"u6","score":0.7618016810571367},{"user":"u28","score":0.7618016810571367},{"user":"u9","score":0.7618016810571367},{"user":"u29","score":0.6220084679281463},{"user":"u30","score":0.5386751345948129}]}
 ```
 
-#### [Next: DASE Components Explained](/templates/similarproduct/dase/)
+#### [Next: DASE Components Explained](/templates/similaruser/dase/)

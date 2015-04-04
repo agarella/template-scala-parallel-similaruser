@@ -1,4 +1,4 @@
-# Similar Product Template
+# Similar User Template
 
 ## Documentation
 
