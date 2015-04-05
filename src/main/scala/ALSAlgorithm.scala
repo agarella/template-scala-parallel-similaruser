@@ -28,13 +28,13 @@ class ALSModel(
     s"(${similarUserFeatures.take(2).toList}...)" +
     s" similarUserStringIntMap: [${similarUserStringIntMap.size}]" +
     s"(${similarUserStringIntMap.take(2).toString()}...)]" +
-    s" similarUsers: [${similarUsers.size}]" +
+    s" users: [${similarUsers.size}]" +
     s"(${similarUsers.take(2).toString()}...)]"
   }
 }
 
 /**
-  * Use ALS to build similarUser x feature matrix
+  * Use ALS to build user x feature matrix
   */
 class ALSAlgorithm(val ap: ALSAlgorithmParams)
   extends P2LAlgorithm[PreparedData, ALSModel, Query, PredictedResult] {
@@ -50,40 +50,36 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       s"users in PreparedData cannot be empty." +
       " Please check if DataSource generates TrainingData" +
       " and Preprator generates PreparedData correctly.")
-    require(data.similarUsers.take(1).nonEmpty,
-      s"similarUsers in PreparedData cannot be empty." +
-      " Please check if DataSource generates TrainingData" +
-      " and Preprator generates PreparedData correctly.")
-    // create User and similarUser's String ID to integer index BiMap
+    // create User String ID to integer index BiMap
     val userStringIntMap = BiMap.stringInt(data.users.keys)
-    val similarUserStringIntMap = BiMap.stringInt(data.similarUsers.keys)
+    val similarUserStringIntMap = BiMap.stringInt(data.users.keys)
 
     // collect SimilarUser as Map and convert ID to Int index
-    val similarUsers: Map[Int, User] = data.similarUsers.map { case (id, similarUser) =>
+    val similarUsers: Map[Int, User] = data.users.map { case (id, similarUser) =>
       (similarUserStringIntMap(id), similarUser)
     }.collectAsMap().toMap
 
     val mllibRatings = data.viewEvents
       .map { r =>
-        // Convert user and similarUser String IDs to Int index for MLlib
+        // Convert user and user String IDs to Int index for MLlib
         val uindex = userStringIntMap.getOrElse(r.user, -1)
-        val iindex = similarUserStringIntMap.getOrElse(r.similarUser, -1)
+        val iindex = similarUserStringIntMap.getOrElse(r.viewedUser, -1)
 
         if (uindex == -1)
           logger.info(s"Couldn't convert nonexistent user ID ${r.user}"
             + " to Int index.")
 
         if (iindex == -1)
-          logger.info(s"Couldn't convert nonexistent similarUser ID ${r.similarUser}"
+          logger.info(s"Couldn't convert nonexistent viewedUser ID ${r.viewedUser}"
             + " to Int index.")
 
         ((uindex, iindex), 1)
       }.filter { case ((u, i), v) =>
-        // keep events with valid user and similarUser index
+        // keep events with valid user and user index
         (u != -1) && (i != -1)
-      }.reduceByKey(_ + _) // aggregate all view events of same user-similarUser pair
+      }.reduceByKey(_ + _) // aggregate all view events of same user-user pair
       .map { case ((u, i), v) =>
-        // MLlibRating requires integer index for user and similarUser
+        // MLlibRating requires integer index for user and user
         MLlibRating(u, i, v)
       }
       .cache()
@@ -91,7 +87,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     // MLLib ALS cannot handle empty training data.
     require(mllibRatings.take(1).nonEmpty,
       s"mllibRatings cannot be empty." +
-      " Please check if your events contain valid user and similarUser ID.")
+      " Please check if your events contain valid user and viewedUser ID.")
 
     // seed for MLlib ALS
     val seed = ap.seed.getOrElse(System.nanoTime)
@@ -117,11 +113,11 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     val similarUserFeatures = model.similarUserFeatures
 
     // convert similarUsers to Int index
-    val queryList: Set[Int] = query.similarUsers.map(model.similarUserStringIntMap.get)
+    val queryList: Set[Int] = query.users.map(model.similarUserStringIntMap.get)
       .flatten.toSet
 
     val queryFeatures: Vector[Array[Double]] = queryList.toVector
-      // similarUserFeatures may not contain the requested similarUser
+      // similarUserFeatures may not contain the requested user
       .map { similarUser => similarUserFeatures.get(similarUser) }
       .flatten
 
@@ -135,7 +131,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
     val ord = Ordering.by[(Int, Double), Double](_._2).reverse
 
     val indexScores: Array[(Int, Double)] = if (queryFeatures.isEmpty) {
-      logger.info(s"No similarUserFeatures vector for query similarUsers ${query.similarUsers}.")
+      logger.info(s"No similarUserFeatures vector for query users ${query.users}.")
       Array[(Int, Double)]()
     } else {
       similarUserFeatures.par // convert to parallel collection
@@ -163,7 +159,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
 
     val similarUserScores = topScores.map { case (i, s) =>
       new similarUserScore(
-        similarUser = model.similarUserIntStringMap(i),
+        user = model.similarUserIntStringMap(i),
         score = s
       )
     }
@@ -173,7 +169,6 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
 
   private
   def getTopN[T](s: Seq[T], n: Int)(implicit ord: Ordering[T]): Seq[T] = {
-
     val q = mutable.PriorityQueue()
 
     for (x <- s) {

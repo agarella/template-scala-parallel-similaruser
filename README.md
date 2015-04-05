@@ -1,4 +1,4 @@
-# Similar Product Template
+# Similar User Template
 
 ## Documentation
 
@@ -24,7 +24,7 @@ normal:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"], "num": 10}' \
+-d '{ "users": ["u1", "u3", "u10", "u2", "u5", "u31", "u9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
@@ -32,7 +32,7 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
+  "users": ["u1", "u3", "u10", "u2", "u5", "u31", "u9"],
   "num": 10
 }' \
 http://localhost:8000/queries.json \
@@ -42,9 +42,9 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
+  "users": ["u1", "u3", "u10", "u2", "u5", "u31", "u9"],
   "num": 10,
-  "whiteList": ["su21", "su26", "su40"]
+  "whiteList": ["u21", "u26", "u40"]
 }' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
@@ -53,29 +53,29 @@ http://localhost:8000/queries.json \
 ```
 curl -H "Content-Type: application/json" \
 -d '{
-  "similarUsers": ["su1", "su3", "su10", "su2", "su5", "su31", "su9"],
+  "users": ["u1", "u3", "u10", "u2", "u5", "u31", "u9"],
   "num": 10,
-  "blackList": ["su21", "su26", "su40"]
+  "blackList": ["u21", "u26", "u40"]
 }' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
-unknown similarUser:
+unknown user:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "similarUsers": ["unk1", "su3", "su10", "su2", "su5", "su31", "su9"], "num": 10}' \
+-d '{ "users": ["unk1", "u3", "u10", "u2", "u5", "u31", "u9"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
 
 
-all unknown similarUsers:
+all unknown users:
 
 ```
 curl -H "Content-Type: application/json" \
--d '{ "similarUsers": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
+-d '{ "users": ["unk1", "unk2", "unk3", "unk4"], "num": 10}' \
 http://localhost:8000/queries.json \
 -w %{time_connect}:%{time_starttransfer}:%{time_total}
 ```
