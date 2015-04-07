@@ -25,7 +25,7 @@ Help your customers find more users by providing them suggestions of users simil
 By default, this template takes the following data from Event Server as Training Data:
 
 - User *$set* events
-- Users' *view* viewedUser events
+- User *view* User events
 
 ### Input Query
 
@@ -89,7 +89,7 @@ client.create_event(
   event="view",
   entity_type="user",
   entity_id=<USER ID>,
-  target_entity_type="viewedUser",
+  target_entity_type="user",
   target_entity_id=<VIEWED USER ID>
 )
 ```
@@ -115,7 +115,7 @@ $client->createEvent(array(
    'event' => 'view',
    'entityType' => 'user',
    'entityId' => <USER ID>,
-   'targetEntityType' => 'viewedUser',
+   'targetEntityType' => 'user',
    'targetEntityId' => <VIEWED USER ID>
 ));
 
@@ -169,7 +169,7 @@ Event viewEvent = new Event()
     .event("view")
     .entityType("user")
     .entityId(<USER_ID>)
-    .targetEntityType("viewedUser")
+    .targetEntityType("user")
     .targetEntityId(<VIEWED_USER_ID>);
 client.createEvent(viewEvent);
 
@@ -196,7 +196,7 @@ curl -i -X POST <URL OF EVENTSERVER>/events.json?accessKey=<ACCESS KEY> \
   "event" : "view",
   "entityType" : "user"
   "entityId" : <USER ID>,
-  "targetEntityType" : "viewedUser",
+  "targetEntityType" : "user",
   "targetEntityId" : <VIEWED USER ID>,
   "eventTime" : <TIME OF THIS EVENT>
 }'

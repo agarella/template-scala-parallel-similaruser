@@ -41,7 +41,7 @@ class DataSource(val dsp: DataSourceParams)
       entityType = Some("user"),
       eventNames = Some(List("view")),
       // targetEntityType is optional field of an event.
-      targetEntityType = Some(Some("viewedUser")))(sc)
+      targetEntityType = Some(Some("user")))(sc)
       // eventsDb.find() returns RDD[Event]
       .map { event =>
         val viewEvent = try {
