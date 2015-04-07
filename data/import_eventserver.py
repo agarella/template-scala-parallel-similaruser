@@ -33,7 +33,7 @@ def import_events(client):
         event="view",
         entity_type="user",
         entity_id=user_id,
-        target_entity_type="viewedUser",
+        target_entity_type="user",
         target_entity_id=viewed_user
       )
       count += 1

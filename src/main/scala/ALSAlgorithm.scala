@@ -52,7 +52,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       " and Preprator generates PreparedData correctly.")
     // create User String ID to integer index BiMap
     val userStringIntMap = BiMap.stringInt(data.users.keys)
-    val similarUserStringIntMap = BiMap.stringInt(data.users.keys)
+    val similarUserStringIntMap = userStringIntMap
 
     // collect SimilarUser as Map and convert ID to Int index
     val similarUsers: Map[Int, User] = data.users.map { case (id, similarUser) =>
